@@ -1,6 +1,11 @@
 import express from "express";
 
+import logger from "./middleware/logger.js";
+import timestampMiddleware from "./middleware/timestamp.js";
+import requestCounter from "./middleware/requestCounter.js";
+
 const app = express();
+app.locals.requestCount = 0;
 
 const PORT = 3000;
 
@@ -16,6 +21,13 @@ const products = [
     price: 250000,
   },
 ];
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(logger);
+app.use(timestampMiddleware)
+app.use(requestCounter)
 
 app.get("/", (req, res) => {
   res.send("Welcome to my first Express API!");
