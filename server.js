@@ -3,6 +3,7 @@ import express from "express";
 import logger from "./middleware/logger.js";
 import timestampMiddleware from "./middleware/timestamp.js";
 import requestCounter from "./middleware/requestCounter.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 app.locals.requestCount = 0;
@@ -22,12 +23,18 @@ const products = [
   },
 ];
 
+const users = [
+  { id: 1, name: "John" },
+  { id: 2, name: "Jane" },
+  { id: 3, name: "Michael" },
+];
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(logger);
-app.use(timestampMiddleware)
-app.use(requestCounter)
+app.use(timestampMiddleware);
+app.use(requestCounter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to my first Express API!");
@@ -132,6 +139,35 @@ app.get("/products/:id", (req, res) => {
     product,
   });
 });
+
+app.get("/test-error", (req, res, next) => {
+  const error = new Error("Something went wrong!");
+
+  next(error);
+});
+
+app.get("/users/:id", (req, res, next) => {
+  const { id } = req.params;
+
+  const userId = Number(id);
+
+  if (!userId || userId === null) {
+    const error = new Error("User not found");
+
+    error.statusCode = 404;
+
+    next(error);
+  }
+
+  const user = users.find((u) => u.id === userId);
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
