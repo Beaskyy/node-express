@@ -53,8 +53,10 @@ app.get("/customers", (req, res) => {
 });
 
 app.post("/customers", (req, res) => {
-  res.json({
-    message: "Customer created successfully",
+  console.log(req.body)
+  res.status(201).json({
+    success: true,
+    data: req.body
   });
 });
 
@@ -151,15 +153,22 @@ app.get("/users/:id", (req, res, next) => {
 
   const userId = Number(id);
 
-  if (!userId || userId === null) {
+  if (!Number.isInteger(userId) || userId <= 0) {
     const error = new Error("User not found");
 
     error.statusCode = 404;
 
-    next(error);
+    return next(error);
   }
 
   const user = users.find((u) => u.id === userId);
+
+  if(!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+
+    return next(error);
+  }
 
   res.status(200).json({
     success: true,
