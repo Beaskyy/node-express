@@ -10,6 +10,14 @@ app.locals.requestCount = 0;
 
 const PORT = 3000;
 
+// middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(logger);
+app.use(timestampMiddleware);
+app.use(requestCounter);
+
 const products = [
   {
     id: 1,
@@ -29,12 +37,178 @@ const users = [
   { id: 3, name: "Michael" },
 ];
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Temporary database
+let customers = [
+  {
+    id: 1,
+    name: "John Doe",
+    email: "john@example.com",
+    phone: "08012345678",
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    phone: "08098765432",
+  },
+];
 
-app.use(logger);
-app.use(timestampMiddleware);
-app.use(requestCounter);
+// CREATE CUSTOMER
+app.post("/customers", (req, res) => {
+  const { name, email, phone } = req.body;
+  if (
+    typeof name !== "string" ||
+    !name.trim() ||
+    typeof email !== "string" ||
+    !email.trim() ||
+    typeof phone !== "string" ||
+    !phone.trim()
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Name, email, and phone are required",
+    });
+  }
+
+  const newCustomer = {
+    id: customers.length
+      ? Math.max(...customers.map((customer) => customer.id)) + 1
+      : 1,
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    phone: phone.trim(),
+  };
+  customers.push(newCustomer);
+
+  res.status(201).json({
+    success: true,
+    message: "Customer created successfully",
+    data: newCustomer,
+  });
+});
+
+// GET SINGLE CUSTOMER
+app.get("/customers/:id", (req, res) => {
+  const { id } = req.params;
+  const customerId = Number(id);
+
+  if (!Number.isInteger(customerId) || customerId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid customer ID",
+    });
+  }
+
+  const customer = customers.find((c) => c.id === customerId);
+
+  if (!customer) {
+    return res.status(404).json({
+      success: false,
+      message: "Customer not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: customer,
+  });
+});
+
+// UPDATE CUSTOMER
+app.patch("/customers/:id", (req, res) => {
+  const { name, email, phone } = req.body;
+  const { id } = req.params;
+
+  const customerId = Number(id);
+
+  if (!Number.isInteger(customerId) || customerId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid customer id",
+    });
+  }
+  const customer = customers.find((c) => c.id === customerId);
+
+  if (!customer) {
+    res.status(404).json({
+      success: false,
+      message: "Customer not found",
+    });
+  }
+
+  const allowedFields = ["name", "email", "phone"];
+  const updates = req.body;
+
+  if (!updates || typeof updates !== "object" || Array.isArray(updates)) {
+    return res.status(400).json({
+      success: false,
+      message: "Request body must be an object",
+    });
+  }
+
+  const fields = Object.keys(updates);
+
+  if (
+    fields.length === 0 ||
+    fields.some((field) => !allowedFields.includes(field))
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Provide valid customer fields to update",
+    });
+  }
+
+  for (const field of fields) {
+    if (typeof updates[fields] !== "string" || !updates[fields].trim()) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid value for ${field}`,
+      });
+    }
+  }
+
+  Object.assign(customer, updates);
+
+  if (updates.name) customer.name = updates.name.trim();
+  if (updates.email) customer.email = updates.email.trim().toLowerCase();
+  if (updates.phone) customer.phone = updates.phone.trim();
+
+  res.status(200).json({
+    success: true,
+    message: "Customer updated successfully",
+    data: customer,
+  });
+});
+
+// DELETE CUSTOMER
+app.delete("/customers/:id", (req, res) => {
+  const { id } = req.params;
+  const customerId = Number(id);
+
+  if (!Number.isInteger(customerId) || customerId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid customer ID",
+    });
+  }
+
+  const customerIndex = customers.findIndex((c) => c.id === customerId);
+
+  if (customerIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "Customer not found",
+    });
+  }
+
+  const [deletedCustomer] = customers.splice(customerIndex, 1);
+
+  res.status(200).json({
+    success: false,
+    message: "Customer deleted successfully",
+    data: deletedCustomer,
+  });
+});
 
 app.get("/", (req, res) => {
   res.send("Welcome to my first Express API!");
@@ -48,38 +222,38 @@ app.get("/customers", (req, res) => {
     message: "All customers retrieved",
     status,
     limit,
-    customers: [],
+    customers,
   });
 });
 
-app.post("/customers", (req, res) => {
-  console.log(req.body)
-  res.status(201).json({
-    success: true,
-    data: req.body
-  });
-});
+// app.post("/customers", (req, res) => {
+//   console.log(req.body);
+//   res.status(201).json({
+//     success: true,
+//     data: req.body,
+//   });
+// });
 
-app.get("/customers/:id", (req, res) => {
-  res.json({
-    message: "Single customer retrieved",
-    id: req.params.id,
-  });
-});
+// app.get("/customers/:id", (req, res) => {
+//   res.json({
+//     message: "Single customer retrieved",
+//     id: req.params.id,
+//   });
+// });
 
-app.patch("/customers/:id", (req, res) => {
-  res.json({
-    message: "Customer updated successfully",
-    id: req.params.id,
-  });
-});
+// app.patch("/customers/:id", (req, res) => {
+//   res.json({
+//     message: "Customer updated successfully",
+//     id: req.params.id,
+//   });
+// });
 
-app.delete("/customers/:id", (req, res) => {
-  res.json({
-    message: "Customer deleted successfully",
-    id: req.params.id,
-  });
-});
+// app.delete("/customers/:id", (req, res) => {
+//   res.json({
+//     message: "Customer deleted successfully",
+//     id: req.params.id,
+//   });
+// });
 
 app.get("/products", (req, res) => {
   if (products.length === 0) {
@@ -163,7 +337,7 @@ app.get("/users/:id", (req, res, next) => {
 
   const user = users.find((u) => u.id === userId);
 
-  if(!user) {
+  if (!user) {
     const error = new Error("User not found");
     error.statusCode = 404;
 
