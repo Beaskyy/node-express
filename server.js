@@ -266,6 +266,12 @@ app.get("/orders/:id", (req, res) => {
 
 // Create orders
 app.post("/orders", (req, res) => {
+  if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+    return res.status(400).json({
+      success: false,
+      message: "Request body must be an object",
+    });
+  }
   const { customerName, service, quantity } = req.body;
 
   if (typeof customerName !== "string" || !customerName.trim()) {
@@ -281,18 +287,19 @@ app.post("/orders", (req, res) => {
     });
   }
 
-  if (typeof quantity !== "number" || !quantity) {
+  if (typeof quantity !== "number" || quantity <= 0) {
     return res.status(400).json({
       success: false,
-      message: "quantity must be a number",
+      message: "quantity must be a postive integer",
     });
   }
 
   const newOrder = {
     id: orders.length ? Math.max(...orders.map((order) => order.id)) + 1 : 1,
+    customerName: customerName.trim(),
     service: service.trim(),
     quantity: quantity,
-    staus: "pending",
+    status: "pending",
   };
   orders.push(newOrder);
 
@@ -324,16 +331,17 @@ app.patch("/orders/:id", (req, res) => {
     });
   }
 
-  const allowedFields = ["customerName", "service", "quantity", "status"];
-
   const updates = req.body;
 
-  if (!updates || typeof updates !== "object" || !Array.isArray(updates)) {
+  if (!updates || typeof updates !== "object" || Array.isArray(updates)) {
     return res.status(400).json({
       success: false,
       message: "Request body must be an object",
     });
   }
+  const allowedFields = ["customerName", "service", "quantity", "status"];
+
+  const allowedStatuses = ["pending", "processing", "ready", "completed"];
 
   const fields = Object.keys(updates);
 
@@ -347,21 +355,43 @@ app.patch("/orders/:id", (req, res) => {
     });
   }
 
+  // validate individual fields
   for (const field of fields) {
-    if(typeof updates[fields] !== "string" || !updates[fields].trim()) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid value for ${field}`
-      })
+    const value = updates[fields];
+
+    if (field === "customerName" || field === "service") {
+      if (typeof value !== "string" || value.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid value for ${field}`,
+        });
+      }
+    }
+
+    if (field === "quantity") {
+      if (!Number.isInteger(value) || value <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Quantity must be a positive integer",
+        });
+      }
+    }
+    if (field === "status") {
+      if (!allowedStatuses.includes(value)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid order status",
+        });
+      }
     }
   }
 
-  Object.assign(order, updates)
+  // update after successful validation
+  for (const field of fields) {
+    const value = updates[field];
 
-  if (updates.customerName) order.customerName = updates.customerName.trim();
-  if (updates.service) order.service = updates.service.trim();
-  if (updates.quantity) order.quantity = updates.quantity.trim()
-  if (updates.status) order.status = updates.status.trim();
+    order[field] = typeof value === "string" ? value.trim() : value;
+  }
 
   res.status(200).json({
     success: true,
@@ -372,34 +402,34 @@ app.patch("/orders/:id", (req, res) => {
 
 // Delete Order
 app.delete("/orders/:id", (req, res) => {
-  const { id } = req.params
+  const { id } = req.params;
 
-  const orderId = Number(id)
+  const orderId = Number(id);
 
-  if(!Number.isInteger(orderId) || orderId <= 0) {
+  if (!Number.isInteger(orderId) || orderId <= 0) {
     return res.status(400).json({
       success: false,
-      message: "Invalid order Id"
-    })
+      message: "Invalid order Id",
+    });
   }
 
-  const orderIndex = orders.findIndex((order) => order.id === orderId)
+  const orderIndex = orders.findIndex((order) => order.id === orderId);
 
-  if(orderIndex === -1) {
+  if (orderIndex === -1) {
     return res.status(404).json({
       success: false,
-      message: "Order not found"
-    })
+      message: "Order not found",
+    });
   }
 
-  const [deletedOrder] = orders.splice(orderIndex, 1)
-  
+  const [deletedOrder] = orders.splice(orderIndex, 1);
+
   res.status(200).json({
     success: true,
     message: "Order deleted successfully",
-    data: deletedOrder
-  })
-})
+    data: deletedOrder,
+  });
+});
 
 app.get("/", (req, res) => {
   res.send("Welcome to my first Express API!");
