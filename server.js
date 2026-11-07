@@ -53,6 +53,23 @@ let customers = [
   },
 ];
 
+const orders = [
+  {
+    id: 1,
+    customerName: "John Doe",
+    service: "Washing",
+    quantity: 5,
+    status: "pending",
+  },
+  {
+    id: 2,
+    customerName: "Jane Smith",
+    service: "Dry Cleaning",
+    quantity: 3,
+    status: "completed",
+  },
+];
+
 // CREATE CUSTOMER
 app.post("/customers", (req, res) => {
   const { name, email, phone } = req.body;
@@ -116,7 +133,6 @@ app.get("/customers/:id", (req, res) => {
 
 // UPDATE CUSTOMER
 app.patch("/customers/:id", (req, res) => {
-  const { name, email, phone } = req.body;
   const { id } = req.params;
 
   const customerId = Number(id);
@@ -209,6 +225,181 @@ app.delete("/customers/:id", (req, res) => {
     data: deletedCustomer,
   });
 });
+
+// Get all orders
+app.get("/orders", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Orders fetched successfully",
+    data: orders,
+  });
+});
+
+// Get a single order
+app.get("/orders/:id", (req, res) => {
+  const { id } = req.params;
+
+  const orderId = Number(id);
+
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid Order ID",
+    });
+  }
+
+  const order = orders.find((order) => order.id === orderId);
+
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      message: "Order not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: `fetch order of id ${orderId}`,
+    data: order,
+  });
+});
+
+// Create orders
+app.post("/orders", (req, res) => {
+  const { customerName, service, quantity } = req.body;
+
+  if (typeof customerName !== "string" || !customerName.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "customerName is required",
+    });
+  }
+  if (typeof service !== "string" || !service.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "service is required",
+    });
+  }
+
+  if (typeof quantity !== "number" || !quantity) {
+    return res.status(400).json({
+      success: false,
+      message: "quantity must be a number",
+    });
+  }
+
+  const newOrder = {
+    id: orders.length ? Math.max(...orders.map((order) => order.id)) + 1 : 1,
+    service: service.trim(),
+    quantity: quantity,
+    staus: "pending",
+  };
+  orders.push(newOrder);
+
+  res.status(201).json({
+    success: true,
+    message: "New order created successfully",
+    data: newOrder,
+  });
+});
+
+// update an order
+app.patch("/orders/:id", (req, res) => {
+  const { id } = req.params;
+
+  const orderId = Number(id);
+
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid order ID",
+    });
+  }
+  const order = orders.find((order) => order.id === orderId);
+
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      message: "Order not found",
+    });
+  }
+
+  const allowedFields = ["customerName", "service", "quantity", "status"];
+
+  const updates = req.body;
+
+  if (!updates || typeof updates !== "object" || !Array.isArray(updates)) {
+    return res.status(400).json({
+      success: false,
+      message: "Request body must be an object",
+    });
+  }
+
+  const fields = Object.keys(updates);
+
+  if (
+    fields.length === 0 ||
+    fields.some((field) => !allowedFields.includes(field))
+  ) {
+    return res.status(404).json({
+      success: false,
+      message: "Provide valid order fields to update",
+    });
+  }
+
+  for (const field of fields) {
+    if(typeof updates[fields] !== "string" || !updates[fields].trim()) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid value for ${field}`
+      })
+    }
+  }
+
+  Object.assign(order, updates)
+
+  if (updates.customerName) order.customerName = updates.customerName.trim();
+  if (updates.service) order.service = updates.service.trim();
+  if (updates.quantity) order.quantity = updates.quantity.trim()
+  if (updates.status) order.status = updates.status.trim();
+
+  res.status(200).json({
+    success: true,
+    message: "Order updated successfully",
+    data: order,
+  });
+});
+
+// Delete Order
+app.delete("/orders/:id", (req, res) => {
+  const { id } = req.params
+
+  const orderId = Number(id)
+
+  if(!Number.isInteger(orderId) || orderId <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid order Id"
+    })
+  }
+
+  const orderIndex = orders.findIndex((order) => order.id === orderId)
+
+  if(orderIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "Order not found"
+    })
+  }
+
+  const [deletedOrder] = orders.splice(orderIndex, 1)
+  
+  res.status(200).json({
+    success: true,
+    message: "Order deleted successfully",
+    data: deletedOrder
+  })
+})
 
 app.get("/", (req, res) => {
   res.send("Welcome to my first Express API!");
