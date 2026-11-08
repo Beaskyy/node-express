@@ -287,10 +287,10 @@ app.post("/orders", (req, res) => {
     });
   }
 
-  if (typeof quantity !== "number" || quantity <= 0) {
+  if (!Number.isInteger(quantity) || quantity <= 0) {
     return res.status(400).json({
       success: false,
-      message: "quantity must be a postive integer",
+      message: "quantity must be a positive integer",
     });
   }
 
@@ -298,7 +298,7 @@ app.post("/orders", (req, res) => {
     id: orders.length ? Math.max(...orders.map((order) => order.id)) + 1 : 1,
     customerName: customerName.trim(),
     service: service.trim(),
-    quantity: quantity,
+    quantity,
     status: "pending",
   };
   orders.push(newOrder);
@@ -349,7 +349,7 @@ app.patch("/orders/:id", (req, res) => {
     fields.length === 0 ||
     fields.some((field) => !allowedFields.includes(field))
   ) {
-    return res.status(404).json({
+    return res.status(400).json({
       success: false,
       message: "Provide valid order fields to update",
     });
@@ -357,10 +357,10 @@ app.patch("/orders/:id", (req, res) => {
 
   // validate individual fields
   for (const field of fields) {
-    const value = updates[fields];
+    const value = updates[field];
 
     if (field === "customerName" || field === "service") {
-      if (typeof value !== "string" || value.trim()) {
+      if (typeof value !== "string" || !value.trim()) {
         return res.status(400).json({
           success: false,
           message: `Invalid value for ${field}`,
