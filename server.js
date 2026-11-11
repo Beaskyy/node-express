@@ -4,6 +4,7 @@ import logger from "./middleware/logger.js";
 import timestampMiddleware from "./middleware/timestamp.js";
 import requestCounter from "./middleware/requestCounter.js";
 import errorHandler from "./middleware/errorHandler.js";
+import orderRoute from "./src/routes/order.route.js";
 
 const app = express();
 app.locals.requestCount = 0;
@@ -572,6 +573,8 @@ app.get("/users/:id", (req, res, next) => {
 });
 
 app.use(errorHandler);
+
+app.use(orderRoute)
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
