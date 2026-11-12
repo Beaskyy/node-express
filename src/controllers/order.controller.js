@@ -25,4 +25,10 @@ export const creatOrder = async (req, res) => {
       message: "Service is required"
     })
   }
+  if(!quantity || typeof quantity !== "number") {
+    return res.status(400).json({
+      status: false,
+      message: "quantity is required"
+    })
+  }
 };
