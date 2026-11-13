@@ -25,10 +25,10 @@ export const creatOrder = async (req, res) => {
       message: "Service is required"
     })
   }
-  if(!quantity || typeof quantity !== "number") {
+  if(Number.isInteger(quantity) || quantity <= 0) {
     return res.status(400).json({
       status: false,
-      message: "quantity is required"
+      message: "Quantity must be a postive integer"
     })
   }
 };
