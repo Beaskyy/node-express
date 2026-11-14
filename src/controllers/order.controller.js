@@ -1,34 +1,25 @@
-import createOrder from "../services/order.service.js";
+import createOrderService from "../services/order.service.js";
 
-export const creatOrder = async (req, res) => {
-  createOrder(req, res);
+export const createOrder = async (req, res) => {
+  try {
+    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+      return res.status(400).json({
+        success: false,
+        message: "Request body must be a valid object",
+      });
+    }
 
-  if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-    return res.status(400).json({
-      status: false,
-      message: "Request body must be an object",
+    const newOrder = createOrderService(req.body);
+
+    return res.status(201).json({
+      success: true,
+      message: "New order created successfully",
+      data: newOrder,
     });
-  }
-
-  const { customerName, service, quantity} = req.body
-
-  if(!customerName || typeof customerName !== "string") {
-    return res.status(400).json({
-      status: false,
-      message: "Customer name is required"
-    })
-  }
-
-  if(!service || typeof service !== "string") {
-    return res.status(400).json({
-      status: false,
-      message: "Service is required"
-    })
-  }
-  if(Number.isInteger(quantity) || quantity <= 0) {
-    return res.status(400).json({
-      status: false,
-      message: "Quantity must be a postive integer"
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal server error"
     })
   }
 };

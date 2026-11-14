@@ -1,8 +1,8 @@
 import { Router } from "express"
-import { creatOrder } from "../controllers/order.controller.js";
+import { createOrder } from "../controllers/order.controller.js";
 
 const orderRoute = Router();
 
-orderRoute.get("/bsk", creatOrder)
+orderRoute.post("/", createOrder)
 
 export default orderRoute
