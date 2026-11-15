@@ -1,8 +1,19 @@
-import { Router } from "express"
-import { createOrder } from "../controllers/order.controller.js";
+import { Router } from "express";
+import { createOrder, deleteOrder, getOrders, getSingleOrder, updateOrder } from "../controllers/order.controller.js";
 
 const orderRoute = Router();
 
-orderRoute.post("/", createOrder)
+orderRoute.route("/")
+  .post(createOrder)
+  .get(getOrders);
 
-export default orderRoute
+orderRoute.route("/:id")
+.get(getSingleOrder)
+.patch(updateOrder)
+.delete(deleteOrder)
+
+
+// orderRoute.post("/", createOrder)
+// orderRoute.get("/", getOrders)
+
+export default orderRoute;
