@@ -31,7 +31,6 @@ export const createOrder = async (req, res) => {
 };
 
 // Get orders
-
 export const getOrders = async (req, res) => {
   try {
     const orders = getOrdersService();
