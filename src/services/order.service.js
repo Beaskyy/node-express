@@ -122,16 +122,15 @@ export const deleteOrderService = ({ id }) => {
     throwError("Invalid order id")
   }
 
-  const order = orders.find((order) => order.id = id)
+  const orderIndex = orders.findIndex((order) => order.id = id)
 
-  console.log(id, order)
 
-  if(!order) {
+  if(orderIndex === -1) {
     throwError("Order not found", 404)
   }
 
 
-  const deletedOrder = orders.pop(order.id)
+  const [deletedOrder] = orders.splice(orderIndex, 1)
 
   return deletedOrder
 }
