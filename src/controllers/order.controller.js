@@ -6,7 +6,7 @@ import createOrderService, {
 } from "../services/order.service.js";
 
 // Create orders
-export const createOrder = async (req, res) => {
+export const createOrder = (req, res) => {
   try {
     if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
       return res.status(400).json({
@@ -31,7 +31,7 @@ export const createOrder = async (req, res) => {
 };
 
 // Get orders
-export const getOrders = async (req, res) => {
+export const getOrders = (req, res) => {
   try {
     const orders = getOrdersService();
 
@@ -50,9 +50,9 @@ export const getOrders = async (req, res) => {
 };
 
 // get single order
-export const getSingleOrder = async (req, res) => {
+export const getSingleOrder = (req, res) => {
   try {
-    const order = getOrderService(req.params);
+    const order = getOrderService(req.params.id);
 
     return res.status(200).json({
       success: true,
@@ -68,15 +68,15 @@ export const getSingleOrder = async (req, res) => {
 };
 
 // update order
-export const updateOrder = async (req, res) => {
+export const updateOrder = (req, res) => {
   if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Request body must be a valid object",
     });
   }
   try {
-    const order = updateOrderService(req.params, req.body);
+    const order = updateOrderService(req.params.id, req.body);
     return res.status(200).json({
       success: true,
       message: `Order with id ${order.id} updated successfully`,
@@ -91,9 +91,9 @@ export const updateOrder = async (req, res) => {
 };
 
 // delete order
-export const deleteOrder = async (req, res) => {
+export const deleteOrder = (req, res) => {
   try {
-    const order = deleteOrderService(req.params);
+    const order = deleteOrderService(req.params.id);
 
     return res.status(200).json({
       success: true,
