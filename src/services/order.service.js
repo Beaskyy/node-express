@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 const orders = [];
-const VALID_STATUSES = ["pending", "completed", "in-review"];
+const VALID_STATUSES = ["pending", "processing", "ready", "completed"];
 
 const throwError = (message, statusCode = 400) => {
   const error = new Error(message);
@@ -35,13 +35,10 @@ const createOrder = ({ customerName, service, quantity }) => {
 };
 
 export const getOrdersService = () => {
-  if (!orders.length) {
-    throwError("No orders found", 404);
-  }
   return orders;
 };
 
-export const getOrderService = ({ id }) => {
+export const getOrderService = (id) => {
   if (!id || typeof id !== "string") {
     throwError("Invalid order id");
   }
@@ -56,7 +53,7 @@ export const getOrderService = ({ id }) => {
 };
 
 export const updateOrderService = (
-  { id },
+  id,
   { customerName, quantity, service, status },
 ) => {
   if (!id || typeof id !== "string") {
@@ -79,27 +76,24 @@ export const updateOrderService = (
     throwError("At least one field is required to update");
   }
 
-  // only validate and update fields that were sent
+  // Phase 1: Validate everything
 
   if (customerName !== undefined) {
     if (typeof customerName !== "string" || !customerName.trim()) {
       throwError("Customer name is required");
     }
-    order.customerName = customerName.trim();
   }
 
   if (service !== undefined) {
     if (typeof service !== "string" || !service.trim()) {
       throwError("Service name is required");
     }
-    order.service === service.trim();
   }
 
   if (quantity !== undefined) {
     if (!Number.isInteger(quantity) || quantity <= 0) {
       throwError("Quantity must be a positive integer");
     }
-    order.quantity = quantity;
   }
 
   if (status !== undefined) {
@@ -107,32 +101,46 @@ export const updateOrderService = (
       throwError("Status is required");
     }
 
-    const normalizedStatus = status.trim().toLocaleLowerCase();
+    const normalizedStatus = status.trim().toLowerCase();
     if (!VALID_STATUSES.includes(normalizedStatus)) {
-      throwError("Status should either be pending, in-review or completed");
+      throwError("Invalid order status");
     }
-    order.status = status.trim();
+  }
+
+  // Phase 2: Update only after all validation succeeds
+  if (customerName !== undefined) {
+    order.customerName = customerName.trim();
+  }
+
+  if (service !== undefined) {
+    order.service = service.trim();
+  }
+
+  if (quantity !== undefined) {
+    order.quantity = quantity;
+  }
+
+  if (status !== undefined) {
+    order.status = status.trim().toLowerCase();
   }
 
   return order;
 };
 
-export const deleteOrderService = ({ id }) => {
-  if(!id || typeof id !== "string") {
-    throwError("Invalid order id")
+export const deleteOrderService = (id) => {
+  if (!id || typeof id !== "string") {
+    throwError("Invalid order id");
   }
 
-  const orderIndex = orders.findIndex((order) => order.id = id)
+  const orderIndex = orders.findIndex((order) => order.id === id);
 
-
-  if(orderIndex === -1) {
-    throwError("Order not found", 404)
+  if (orderIndex === -1) {
+    throwError("Order not found", 404);
   }
 
+  const [deletedOrder] = orders.splice(orderIndex, 1);
 
-  const [deletedOrder] = orders.splice(orderIndex, 1)
-
-  return deletedOrder
-}
+  return deletedOrder;
+};
 
 export default createOrder;
