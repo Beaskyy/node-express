@@ -8,13 +8,6 @@ import createOrderService, {
 // Create orders
 export const createOrder = (req, res) => {
   try {
-    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-      return res.status(400).json({
-        success: false,
-        message: "Request body must be a valid object",
-      });
-    }
-
     const newOrder = createOrderService(req.body);
 
     return res.status(201).json({
@@ -69,12 +62,6 @@ export const getSingleOrder = (req, res) => {
 
 // update order
 export const updateOrder = (req, res) => {
-  if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-    return res.status(400).json({
-      success: false,
-      message: "Request body must be a valid object",
-    });
-  }
   try {
     const order = updateOrderService(req.params.id, req.body);
     return res.status(200).json({

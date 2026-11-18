@@ -9,18 +9,6 @@ const throwError = (message, statusCode = 400) => {
   throw error;
 };
 const createOrder = ({ customerName, service, quantity }) => {
-  if (typeof customerName !== "string" || !customerName.trim()) {
-    throwError("Customer name is required");
-  }
-
-  if (typeof service !== "string" || !service.trim()) {
-    throwError("service is requires");
-  }
-
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    throwError("Quantity must be a postive integer");
-  }
-
   const newOrder = {
     id: randomUUID(),
     customerName: customerName.trim(),
@@ -39,8 +27,9 @@ export const getOrdersService = () => {
 };
 
 export const getOrderService = (id) => {
+  console.log(id)
   if (!id || typeof id !== "string") {
-    throwError("Invalid order id");
+    throwError("Invalid order uuid");
   }
 
   const order = orders.find((order) => order.id === id);
@@ -74,37 +63,6 @@ export const updateOrderService = (
     status === undefined
   ) {
     throwError("At least one field is required to update");
-  }
-
-  // Phase 1: Validate everything
-
-  if (customerName !== undefined) {
-    if (typeof customerName !== "string" || !customerName.trim()) {
-      throwError("Customer name is required");
-    }
-  }
-
-  if (service !== undefined) {
-    if (typeof service !== "string" || !service.trim()) {
-      throwError("Service name is required");
-    }
-  }
-
-  if (quantity !== undefined) {
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      throwError("Quantity must be a positive integer");
-    }
-  }
-
-  if (status !== undefined) {
-    if (typeof status !== "string" || !status.trim()) {
-      throwError("Status is required");
-    }
-
-    const normalizedStatus = status.trim().toLowerCase();
-    if (!VALID_STATUSES.includes(normalizedStatus)) {
-      throwError("Invalid order status");
-    }
   }
 
   // Phase 2: Update only after all validation succeeds
