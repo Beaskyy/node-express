@@ -44,37 +44,23 @@ export const getOrders = (req, res) => {
 
 // get single order
 export const getSingleOrder = (req, res) => {
-  try {
-    const order = getOrderService(req.params.id);
+  const order = getOrderService(req.params.id);
 
-    return res.status(200).json({
-      success: true,
-      message: `Order with UUID ${order.id} fetched successfully`,
-      data: order,
-    });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
-  }
+  return res.status(200).json({
+    success: true,
+    message: `Order with UUID ${order.id} fetched successfully`,
+    data: order,
+  });
 };
 
 // update order
 export const updateOrder = (req, res) => {
-  try {
-    const order = updateOrderService(req.params.id, req.body);
-    return res.status(200).json({
-      success: true,
-      message: `Order with id ${order.id} updated successfully`,
-      data: order,
-    });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
-  }
+  const order = updateOrderService(req.params.id, req.body);
+  return res.status(200).json({
+    success: true,
+    message: `Order with id ${order.id} updated successfully`,
+    data: order,
+  });
 };
 
 // delete order
