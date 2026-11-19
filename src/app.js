@@ -1,10 +1,17 @@
-import express from "express"
+import express from "express";
 import orderRoute from "./routes/order.route.js";
+import errorHandler from "./middleware/ErrorHandler.js";
+import notFound from "./middleware/NotFound.js";
 
 const app = express();
 
-app.use(express.json())
+app.use(express.json());
 
-app.use("/api/orders", orderRoute)
+app.use("/api/orders", orderRoute);
 
-export default app
+app.use(notFound);
+
+// must come after routes
+app.use(errorHandler);
+
+export default app;

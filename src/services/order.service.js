@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import AppError from "../utils/AppError.js";
 
 const orders = [];
 const VALID_STATUSES = ["pending", "processing", "ready", "completed"];
@@ -27,15 +28,10 @@ export const getOrdersService = () => {
 };
 
 export const getOrderService = (id) => {
-  console.log(id)
-  if (!id || typeof id !== "string") {
-    throwError("Invalid order uuid");
-  }
-
   const order = orders.find((order) => order.id === id);
 
   if (!order) {
-    throwError("Order not found", 404);
+    throw new AppError("Order not found", 404);
   }
 
   return order;
@@ -45,14 +41,14 @@ export const updateOrderService = (
   id,
   { customerName, quantity, service, status },
 ) => {
-  if (!id || typeof id !== "string") {
-    throwError("Invalid order id");
+  if (typeof id !== "string" || !id.trim()) {
+    throw new AppError("Invalid order ID", 400);
   }
 
   const order = orders.find((order) => order.id === id);
 
   if (!order) {
-    throwError("Order not found", 404);
+    throw new AppError("Order not found", 404);
   }
 
   // Ensure at least on updateable field was provided
@@ -62,7 +58,7 @@ export const updateOrderService = (
     quantity === undefined &&
     status === undefined
   ) {
-    throwError("At least one field is required to update");
+    throw new AppError("At least one field is required to update", 400);
   }
 
   // Phase 2: Update only after all validation succeeds
