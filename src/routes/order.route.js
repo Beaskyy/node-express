@@ -11,18 +11,19 @@ import {
   createOrderSchema,
   updateOrderSchema,
 } from "../validators/order.validator.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 const orderRoute = Router();
 
 orderRoute
   .route("/")
-  .post(validate(createOrderSchema), createOrder)
-  .get(getOrders);
+  .post(validate(createOrderSchema), asyncHandler(createOrder))
+  .get(asyncHandler(getOrders));
 
 orderRoute
   .route("/:id")
-  .get(getSingleOrder)
-  .patch(validate(updateOrderSchema), updateOrder)
-  .delete(deleteOrder);
+  .get(asyncHandler(getSingleOrder))
+  .patch(validate(updateOrderSchema), asyncHandler(updateOrder))
+  .delete(asyncHandler(deleteOrder));
 
 export default orderRoute;
