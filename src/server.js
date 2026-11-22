@@ -1,11 +1,13 @@
 import app from "./app.js";
+import env from "./config/env.js";
 
-const PORT = process.env.PORT || 8080;
+console.log(env.nodeEnv);
+
 
 app.get("/", (req, res) => {
-  res.send("Beasky")
-})
+  res.send("Beasky");
+});
 
-app.listen(PORT, () => {
-  console.log(`Server running on port http://localhost:${PORT}`);
+app.listen(env.port, () => {
+  console.log(`Server running on port http://localhost:${env.port}`);
 });
