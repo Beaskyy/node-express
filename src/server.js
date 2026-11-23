@@ -1,12 +1,6 @@
-import app from "./app.js";
+import "dotenv/config"
 import env from "./config/env.js";
-
-console.log(env.nodeEnv);
-
-
-app.get("/", (req, res) => {
-  res.send("Beasky");
-});
+import app from "./app.js";
 
 app.listen(env.port, () => {
   console.log(`Server running on port http://localhost:${env.port}`);
