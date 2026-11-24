@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Maakleans API is running");
+  res.send("Maakleans API is running. This is the homepage");
 });
 
 app.use("/api/orders", orderRoute);
