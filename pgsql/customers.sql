@@ -21,7 +21,7 @@ CREATE TABLE orders (
 );
 
 INSERT INTO customers (full_name, phone)
-VALUES('Aisha Olasupo', '08012345678');
+VALUES('Aishat Olasupo', '08012345678');
 RETURNING id
 
 SELECT * FROM customers;
